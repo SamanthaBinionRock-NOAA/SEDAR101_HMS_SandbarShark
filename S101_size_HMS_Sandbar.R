@@ -43,7 +43,7 @@ spp.info = dbGetQuery(con, "SELECT *
 # ###       (i.e., copy/paste current ACL size file to desktop, load into R, and save workspace )...
 #
  dir <- getwd()
- dat <- read_sas(data_file = paste0( dir,"/Size/acl_size81_25final.sas7bdat" ))
+ dat <- read_sas(data_file = paste0( dir,"/Size/hms_size81_24final.sas7bdat" ))
 # 
 # save.image( file = paste0( dir,"/ACL_size.RData" ) )
 
@@ -52,16 +52,20 @@ spp.info = dbGetQuery(con, "SELECT *
 
 
 
+##* *Are sharks in the average weight files - no*
+ #s.dat <- read_sas(data_file = paste0( dir,"/Size/avgwgt_s.sas7bdat" ))
 
-
-
+ 
+ 
+ unique(s.dat$NEW_COM)
+ 
 
 ####################################################################################################################
 ####################################################################################################################
 ####################################################################################################################
 #############################                                                          #############################
-#############################                       SEDAR 100                           #############################
-#############################                Gulf Gray Triggerfish                    #############################
+#############################                       SEDAR 100                          #############################
+#############################                   HMS Sandbar Shark                       #############################
 #############################                                                          #############################
 ####################################################################################################################
 ####################################################################################################################
@@ -70,10 +74,10 @@ spp.info = dbGetQuery(con, "SELECT *
 
 ###       ...for this assessment, data is pulled for...
 ###
-###           Gray Triggerfish - Balistes capriscus
+###           Sandbar Shark - Carcharhinus plumbeus
 ###               - Temporal - include 1981-2024
-###               - Modes    - includes charter, private, and headboat 
-###               - Spatial  - TX-FLW (excluding FL Keys)
+###               - Modes    - includes charter, private, shore, and headboat 
+###               - Spatial  - ME to TX
 
 
 
@@ -82,10 +86,10 @@ spp.info = dbGetQuery(con, "SELECT *
 #############################
 
 
-current.sedar <- "SEDAR 100"
+current.sedar <- "SEDAR 101"
 
-# prev.sedar <- "None"
-prev.sedar <- "SEDAR 62"
+prev.sedar <- "None"
+#prev.sedar <- "SEDAR 62"
 ###     ...where the previous SEDAR stock assessment, if one has been conducted,
 ###         also needs to be identified ( for the "Compare Previous SEDARs" tab )...
 
@@ -101,7 +105,7 @@ term.year <- 2024
 
 
 ### SPATIAL ###
-region <- "Gulf of America"
+region <- "Southeast"
 ###   ...which has options:
 ###         'Gulf of America' = c( "TX","LA","MS","AL","FLW" )
 ###         'South Atlantic'  = c( "FLE","GA","SC","NC" )
@@ -112,15 +116,15 @@ region <- "Gulf of America"
 ###         'Atlantic'                           =         *SATL* + *MATL* + *NATL*
 ###         'Southeast'                          = *GOA* + *SATL* + *MATL* + *NATL*
 
-states <- c('TX', 'LA', 'MS', 'AL', 'FLW')
+states <- c("TX","LA","MS","AL","FLW","FLE","GA","SC","NC","VA","MD","DE","PA","NJ","NY","CT","RI","MA","NH","ME" )
 ###   ...which has options c( "TX","LA","MS","AL","FLW","FLE","GA","SC","NC","VA","MD","DE","PA","NJ","NY","CT","RI","MA","NH","ME" )
 ###   ...or c( "PR","VI" ) for Caribbean assessments...
-if( "FL" %in% states | "FLW" %in% states | "FLE" %in% states ) {  FL_sub <- c( 1,2 )  }
+if( "FL" %in% states | "FLW" %in% states | "FLE" %in% states ) {  FL_sub <- c( 1,2,3,4,5 )  }
 if( "NC" %in% states ) {                                          NC_sub <- c( "N","S" )  }
 
 
 ### MODE ###
-mode_sub <- c( "Priv","Cbt","Hbt" )
+mode_sub <- c( "Priv","Cbt","Hbt","Shore" )
 #       ...which has options c( "Priv","Cbt","Hbt","Shore" )
 ###           Note that the code below removes all HBT fishing from SUB_REG = 6 (SATL), FL_REG = 3 (FL Keys),
 ###           and SUB_REG = 7 from 1986+, all of which is designed to avoid overlap with SRHS...
@@ -130,14 +134,14 @@ mode_sub <- c( "Priv","Cbt","Hbt" )
 ###
 ### Moving onto the species-specific filter, I need to pull data for the species of interest...
 ###     Therefore, I start by searching for the appropriate identifiers...
- View( spp.info[grep( "TRIGGERFISH", spp.info$COMMON ),] )
+ View( spp.info[grep( "SANDBAR", spp.info$COMMON ),] )
 # View( spp.info[grep( "Centropristis striata", spp.info$SCIENTIFIC ),] )
 
-sppID.type = 'COMMON'
-taxa <- c( "TRIGGERFISH,GRAY" )
+#sppID.type = 'COMMON'
+#taxa <- c( "SHARK,SANDBAR" )
 
-# sppID.type = 'SCIENTIFIC'
-# taxa <- c( "Balistes capriscus"  )
+sppID.type = 'SCIENTIFIC'
+taxa <- c( "Carcharhinus plumbeus"  )
 
 ###   ...and then import (and apply) the relevant functions to identify the associated spp ID info for 'taxa'...
 source( paste0(dir,'/Functions/lookup_sppID.R') )
@@ -173,10 +177,10 @@ flag.cv = TRUE
 
 if( flag.cv ) {
   
-  sppID.type = 'COMMON'
-  # sppID.type = 'SCIENTIFIC'
+  #sppID.type = 'COMMON'
+  sppID.type = 'SCIENTIFIC'
   
-  taxa.cv <- c( "TRIGGERFISH,GRAY" )
+  taxa.cv <- c( "Carcharhinus plumbeus" )
   
   nodc.cv <- sapply( taxa.cv, FUN=nodc.code.info, spp.field=sppID.type, spp.table=spp.info )
   rm( sppID.type )
@@ -218,7 +222,7 @@ if( flag.cv ) {
 ###       (i.e., to match that which will be provided in the catch file ).
 
 
-flag.forhire = FALSE
+flag.forhire = TRUE
 ###       ...where TRUE represents SEDARs where size data for the separate 'Cbt' & 'Hbt' modes need to be 
 ###         aggregated into a single 'CbtHbt' mode when estimating SEFSC avgwgt CVs...
 
@@ -633,11 +637,19 @@ if( flag.forhire ) {
 
 source( paste0(dir,'/Functions/calc_CVs_avgwgt.R') )
 
+dummy.table1 <- dummy.table %>%
+  group_by(YEAR, NEW_MODEN) %>%
+  summarise(nfish = n(),
+            ntrip = length(unique(MY_ID_CODE)))
+
+
+
+
 avgwgt.table <- CVs.avgwgt( genrec.table = dummy.table,
                             
-                             data = 'trip', estimation = 'RYSMWA',
+                            # data = 'trip', estimation = 'RYSMWA',
                             #data = 'trip', estimation =     'YM',
-                            # data = 'fish', estimation =     'YM',
+                             data = 'fish', estimation =     'YM',
                             
                             add.strata = 'none'
                             # add.strata = c('SID')
@@ -773,7 +785,7 @@ size.table.BIO <- format.BIOtemplate( genrec.table = size.table )
 ####################################################################################################################
 
 
-table.ID <- paste0( "Size/GTF_rec_sizeGEN_singlestock_",
+table.ID <- paste0( "Size/SBS_rec_sizeGEN_",
                     substr( first.year, nchar(first.year)-1, nchar(first.year) ),
                     substr( term.year, nchar(term.year)-1, nchar(term.year) ),
                     "_", gsub("-","", Sys.Date() ) )
