@@ -37,7 +37,8 @@ sandbar_s <- sandbar %>%
 ##* *keep only the fields normally found in the average weight file*
 sandbar_s <- subset(sandbar_s, select = c('NEW_COM',
                                          'SAMPLE_SIZE_USED',
-                                         'S_AVG_WGT'))
+                                         'S_AVG_WGT',
+                                         'LBSEST_SECSOURCE'))
 
 
 
@@ -50,8 +51,8 @@ colnames(sandbar_s)[colnames(sandbar_s)=="S_AVG_WGT"]        <- "avgwgt_s"
 
 ##* *Remove duplicates*
 sandbar_s <- sandbar_s %>%
-  arrange(NEW_COM, FREQ, avgwgt_s) %>%
-  distinct(NEW_COM, FREQ, avgwgt_s)
+  arrange(NEW_COM, FREQ, avgwgt_s, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, FREQ, avgwgt_s, LBSEST_SECSOURCE)
 
 
 save.image( file = paste0(dir,"/Catch/sandbar_s.RData"))
@@ -69,7 +70,8 @@ sandbar_sr <- sandbar %>%
 sandbar_sr <- subset(sandbar_sr, select = c('NEW_COM',
                                             'SUB_REG',
                                             'SAMPLE_SIZE_USED',
-                                            'SR_AVG_WGT'))
+                                            'SR_AVG_WGT',
+                                            'LBSEST_SECSOURCE'))
 
 
 
@@ -81,8 +83,8 @@ colnames(sandbar_sr)[colnames(sandbar_sr)=="SR_AVG_WGT"]       <- "avgwgt_sr"
 
 ##* *Remove duplicates*
 sandbar_sr <- sandbar_sr %>%
-  arrange(NEW_COM, SUB_REG, FREQ, avgwgt_sr) %>%
-  distinct(NEW_COM, SUB_REG, FREQ, avgwgt_sr)
+  arrange(NEW_COM, SUB_REG, FREQ, avgwgt_sr, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, SUB_REG, FREQ, avgwgt_sr, LBSEST_SECSOURCE)
 
 
 
@@ -101,7 +103,8 @@ sandbar_sry <- subset(sandbar_sry, select = c('NEW_COM',
                                               'SUB_REG',
                                               'YEAR',
                                               'SAMPLE_SIZE_USED',
-                                              'SRY_AVG_WGT'))
+                                              'SRY_AVG_WGT',
+                                              'LBSEST_SECSOURCE'))
 
 
 
@@ -115,8 +118,8 @@ colnames(sandbar_sry)[colnames(sandbar_sry)=="YEAR"]             <- "year"
 
 ##* *Remove duplicates*
 sandbar_sry <- sandbar_sry %>%
-  arrange(NEW_COM, SUB_REG, year, FREQ, avgwgt_sry) %>%
-  distinct(NEW_COM, SUB_REG, year, FREQ, avgwgt_sry)
+  arrange(NEW_COM, SUB_REG, year, FREQ, avgwgt_sry, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, SUB_REG, year, FREQ, avgwgt_sry, LBSEST_SECSOURCE)
 
 
 save.image( file = paste0(dir,"/Catch/sandbar_sry.RData"))
@@ -135,7 +138,8 @@ sandbar_srys <- subset(sandbar_srys, select = c('NEW_COM',
                                                 'YEAR',
                                                 'NEW_STA',
                                                 'SAMPLE_SIZE_USED',
-                                                'SRYS_AVG_WGT'))
+                                                'SRYS_AVG_WGT',
+                                                'LBSEST_SECSOURCE'))
 
 
 
@@ -149,8 +153,8 @@ colnames(sandbar_srys)[colnames(sandbar_srys)=="YEAR"]              <- "year"
 
 ##* *Remove duplicates*
 sandbar_srys <- sandbar_srys %>%
-  arrange(NEW_COM, SUB_REG, year, NEW_STA, FREQ, avgwgt_srys) %>%
-  distinct(NEW_COM, SUB_REG, year, NEW_STA, FREQ, avgwgt_srys)
+  arrange(NEW_COM, SUB_REG, year, NEW_STA, FREQ, avgwgt_srys, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, SUB_REG, year, NEW_STA, FREQ, avgwgt_srys, LBSEST_SECSOURCE)
 
 
 save.image( file = paste0(dir,"/Catch/sandbar_srys.RData"))
@@ -171,7 +175,8 @@ sandbar_srysm <- subset(sandbar_srysm, select = c('NEW_COM',
                                                   'NEW_STA',
                                                   'NEW_MODEN',
                                                   'SAMPLE_SIZE_USED',
-                                                  'SRYSM_AVG_WGT'))
+                                                  'SRYSM_AVG_WGT',
+                                                  'LBSEST_SECSOURCE'))
 
 
 
@@ -185,8 +190,8 @@ colnames(sandbar_srysm)[colnames(sandbar_srysm)=="YEAR"]              <- "year"
 
 ##* *Remove duplicates*
 sandbar_srysm <- sandbar_srysm %>%
-  arrange(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, FREQ, avgwgt_srysm) %>%
-  distinct(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, FREQ, avgwgt_srysm)
+  arrange(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, FREQ, avgwgt_srysm, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, FREQ, avgwgt_srysm, LBSEST_SECSOURCE)
 
 
 save.image( file = paste0(dir,"/Catch/sandbar_srysm.RData"))
@@ -207,7 +212,8 @@ sandbar_srysmw <- subset(sandbar_srysmw, select = c('NEW_COM',
                                                     'NEW_MODEN',
                                                     'WAVE',
                                                     'SAMPLE_SIZE_USED',
-                                                    'SRYSMW_AVG_WGT'))
+                                                    'SRYSMW_AVG_WGT',
+                                                    'LBSEST_SECSOURCE'))
 
 
 
@@ -221,8 +227,8 @@ colnames(sandbar_srysmw)[colnames(sandbar_srysmw)=="YEAR"]              <- "year
 
 ##* *Remove duplicates*
 sandbar_srysmw <- sandbar_srysmw %>%
-  arrange(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, FREQ, avgwgt_srysmw) %>%
-  distinct(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, FREQ, avgwgt_srysmw)
+  arrange(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, FREQ, avgwgt_srysmw, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, FREQ, avgwgt_srysmw, LBSEST_SECSOURCE)
 
 
 save.image( file = paste0(dir,"/Catch/sandbar_srysmw.RData"))
@@ -244,7 +250,8 @@ sandbar_srysmwa <- subset(sandbar_srysmwa, select = c('NEW_COM',
                                                     'WAVE',
                                                     'NEW_AREAN',
                                                     'SAMPLE_SIZE_USED',
-                                                    'SRYSMWA_AVG_WGT'))
+                                                    'SRYSMWA_AVG_WGT',
+                                                    'LBSEST_SECSOURCE'))
 
 
 
@@ -258,8 +265,8 @@ colnames(sandbar_srysmwa)[colnames(sandbar_srysmwa)=="YEAR"]              <- "ye
 
 ##* *Remove duplicates*
 sandbar_srysmwa <- sandbar_srysmwa %>%
-  arrange(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, NEW_AREAN, FREQ, avgwgt_srysmwa) %>%
-  distinct(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, NEW_AREAN, FREQ, avgwgt_srysmwa)
+  arrange(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, NEW_AREAN, FREQ, avgwgt_srysmwa, LBSEST_SECSOURCE) %>%
+  distinct(NEW_COM, SUB_REG, year, NEW_STA, NEW_MODEN, WAVE, NEW_AREAN, FREQ, avgwgt_srysmwa, LBSEST_SECSOURCE)
 
 
 save.image( file = paste0(dir,"/Catch/sandbar_srysmwa.RData"))
