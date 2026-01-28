@@ -47,7 +47,7 @@ spp.info = dbGetQuery(con, "SELECT *
 
 dir <- getwd()
 
-dat <- read_sas(data_file = paste0( dir,"/Catch/mrip_fes_rec81_25wv1_15may25.sas7bdat"))
+dat <- read_sas(data_file = paste0( dir,"/Catch/hmsspec_rec81_25wv1_16may25.sas7bdat"))
 ### # save.image( file=paste0( dir,"/ACL_catch.RData" ) )
 
 #load( paste0( dir,"/ACL_catch.RData" ) )
@@ -84,8 +84,8 @@ dat <- read_sas(data_file = paste0( dir,"/Catch/mrip_fes_rec81_25wv1_15may25.sas
 ####################################################################################################################
 ####################################################################################################################
 #############################                                                          #############################
-#############################                       SEDAR 100                           #############################
-#############################                      Gulf Gray Triggerfish                #############################
+#############################                       SEDAR 101                           #############################
+#############################                      HMS Sandbar Shark                #############################
 #############################                                                          #############################
 ####################################################################################################################
 ####################################################################################################################
@@ -94,10 +94,11 @@ dat <- read_sas(data_file = paste0( dir,"/Catch/mrip_fes_rec81_25wv1_15may25.sas
 
 ###       ...for this assessment, data is pulled for...
 ###
-###           Gray Triggerfish - Balistes capriscus
+###           Sandbar Shark - Carcharhinus plumbeus
 ###               - Temporal - include 1981-2024
-###               - Modes    - includes charter, private, and headboat 
-###               - Spatial  - TX-FLW (excluding FL Keys)
+###               - Modes    - includes charter, private, shore, and headboat 
+###               - Spatial  - ME to TX
+
 
 
 
@@ -108,10 +109,10 @@ dat <- read_sas(data_file = paste0( dir,"/Catch/mrip_fes_rec81_25wv1_15may25.sas
 
 
 
-current.sedar <- "SEDAR 100"
+current.sedar <- "SEDAR 101"
 
-# prev.sedar <- "None"
-prev.sedar <- "SEDAR 62"
+prev.sedar <- "None"
+#prev.sedar <- "SEDAR 62"
 ###     ...where the previous SEDAR stock assessment, if one has been conducted,
 ###         also needs to be identified ( for the "Compare Previous SEDARs" tab )...
 
@@ -126,7 +127,7 @@ term.year <- 2024
 
 
 ### SPATIAL ###
-region <- "Gulf of America"
+region <- "Southeast"
 ###   ...which has options:
 ###         'Gulf of America' = c( "TX","LA","MS","AL","FLW" )
 ###         'South Atlantic'  = c( "FLE","GA","SC","NC" )
@@ -137,15 +138,15 @@ region <- "Gulf of America"
 ###         'Atlantic'                           =         *SATL* + *MATL* + *NATL*
 ###         'Southeast'                          = *GOA* + *SATL* + *MATL* + *NATL*
 
-states <- c( "TX","LA","MS","AL","FLW")
+states <- c("TX","LA","MS","AL","FLW","FLE","GA","SC","NC","VA","MD","DE","PA","NJ","NY","CT","RI","MA","NH","ME")
 ###     ...which has options c( "TX","LA","MS","AL","FLW","FLE","GA","SC","NC","VA","MD","DE","PA","NJ","NY","CT","RI","MA","NH","ME" )
 ###     ...or c( "PR","VI" ) for Caribbean assessments...
-if( "FL" %in% states | "FLW" %in% states | "FLE" %in% states ) {  FL_sub <- c( 1,2 )  }
+if( "FL" %in% states | "FLW" %in% states | "FLE" %in% states ) {  FL_sub <- c( 1,2,3,4,5 )  }
 if( "NC" %in% states ) {                                          NC_sub <- c( "N","S" )  }
 
 
 ### MODE ###
-mode_sub <- c( "Priv","Cbt","Hbt" )
+mode_sub <- c( "Priv","Cbt","Hbt","Shore" )
 #       ...which has options c( "Priv","Cbt","Hbt","Shore" )
 ###           Note that the code below removes all HBT fishing from SUB_REG = 6 (SATL), FL_REG = 3 (FL Keys),
 ###           and SUB_REG = 7 from 1986+, all of which is designed to avoid overlap with SRHS...
@@ -155,11 +156,11 @@ mode_sub <- c( "Priv","Cbt","Hbt" )
 ###
 ### Moving onto the species-specific filter, I need to pull data for the species of interest...
 ###     Therefore, I start by searching for the appropriate identifiers...
-View( spp.info[grep( "TRIGGERFISH", spp.info$COMMON ),] )
-# View( spp.info[grep( "Centropristis striata", spp.info$SCIENTIFIC ),] )
+View( spp.info[grep( "SHARK,SANDBAR", spp.info$COMMON ),] )
+#View( spp.info[grep( "Carcharhinus", spp.info$SCIENTIFIC ),] )
 
 sppID.type = 'COMMON'
-taxa <- c( "TRIGGERFISH,GRAY" )
+taxa <- c( "SHARK,SANDBAR" )
 
 # sppID.type = 'SCIENTIFIC'
 # taxa <- c( "Lutjanus griseus"  )
@@ -190,7 +191,7 @@ rm( sppID.type )
 ###       being considered in this assessment, wherein...
 ###
 ###       ...length(report.name) == 1   when we're assessing a single stock (i.e., no 'SID' field in catch.table )
- report.name = '1706_SAMANTHA.BINION-ROCK@NOAA.GOV_2_181104'
+ report.name = '1728_SAMANTHA.BINION-ROCK@NOAA.GOV_2_280817'
 ###
 ###       ...but multiple entries when individual 'SID' boundaries are defined for this stock
 ###         (i.e., one element for each SID domain ). Note that the order in which CV-reports are
@@ -202,7 +203,7 @@ rm( sppID.type )
 # ###     Additionally, separate MRIP CV reports may be needed if we are imputing LACR/TPWD discards using
 # ###     catch rates calculated from either LA or Gulf-wide (B2:AB1) discard ratios, for which we might need:
 # ###
- LA.report.name = '1702_SAMANTHA.BINION-ROCK@NOAA.GOV_2_90633'
+# LA.report.name = '1702_SAMANTHA.BINION-ROCK@NOAA.GOV_2_90633'
 # ###     ...which identifies a MRIP CV report that includes only Louisiana data
 # 
 # GOM.report.name = '1457_MATTHEW.NUTTALL@NOAA.GOV'
@@ -273,7 +274,7 @@ rm( sppID.type )
 ###     ...which identifies the spreadsheet ( saved to the desktop ) containing CV estimates for SEFSC avgwgts,
 ###       as needed when calculating CVs for SEFSC landings-in-weight estimates ( AB1 * avgwgt = lbsest_SEC )...
 
-sedar.size.file = "/Size/GTF_rec_sizeGEN_singlestock_8124_20250718.xlsx"
+sedar.size.file = "/Size/SBS_rec_sizeGEN_8124_20260127_SBR.xlsx"
 
 
 ### -------------------------------------------------------------------------------------------
@@ -327,11 +328,13 @@ if( flag.unid ) {
   sppID.type = 'COMMON'
   # sppID.type = 'SCIENTIFIC'
   
-  taxa.unid = c( "TRIGGERFISH,QUEEN", "TRIGGERFISHES",
-                 "TRIGGERFISH,GRAY","ROUGH TRIGGERFISH","TRIGGERFISH,OCEAN", "TRIGGERFISH,SARGASSUM" )
+  taxa.unid = c( "REQUIEM SHARK GENUS", "SHARK,DUSKY", "SHARK,BULL", "SHARK,SANDBAR", 
+                 "SHARK,BLACKNOSE", "SHARK,BIGNOSE", "SHARK,SILKY", "SHARKBLACKTIP",
+                 "SHARK,OCEANIC WHITETIP", "REEF SHARK", "SHARK,SMALLTAIL", "SPINNER SHARK",
+                 "FINETOOTH SHARK", "NIGHT SHARK")
   ###     ...I also specify the taxa ( in "taxa.unid" ) that represents unidentified catch,
   ###         which will be dropped when estimating potential allocation ratios...
-  taxa.unid.catch = c( "TRIGGERFISHES" )
+  taxa.unid.catch = c( "REQUIEM SHARK GENUS" )
   
   nodc.unid       = sapply( taxa.unid,       FUN=nodc.code.info, spp.field=sppID.type, spp.table=spp.info )
   nodc.unid.catch = sapply( taxa.unid.catch, FUN=nodc.code.info, spp.field=sppID.type, spp.table=spp.info )
@@ -357,7 +360,7 @@ if( flag.unid ) {
 ###       although this applicability has yet to be evaluated for any other species (e.g., as a SEDAR 'best practice' ).
 ###       Regardless, it may be requested and so has been incorporated into the standard GenRec scripts...
 
-flag.forhire = FALSE
+flag.forhire = TRUE
 ###   ...where TRUE represents SEDARs for which combined 'CbtHbt' estimates for the MATL/NATL are to be
 ###       separated into 'Cbt' and 'Hbt' components (i.e., no combined for-hire estimates provided in this file )...
 
@@ -562,7 +565,7 @@ catch.table <- pull.GenRec.catch(  raw.table = dat,
 
 source( paste0(dir,'/Functions/pull_GenRec_catch.R') )
 ###   ...which contains the pull.GenRec.catch() function...
-source( paste0(dir,'/Functions/SECmodify_allocate_unid.R') )
+source( paste0(dir,'/Functions/SECmodify_allocate_unid_HMS.R') )
 ###   ...which contains the summary.unid() and allocate.unid() functions...
 
 
@@ -631,41 +634,41 @@ if( flag.unid ) {
   
   
   # ###   ...and a plot to evaluate the percentage of 'identified' catch composed of the target species...
-#   command.line = paste0( "dummy.table = unid.table %>% group_by( YEAR ) %>%
-#                                 summarise( pAB1 = sum( `",new.com,"_p.AB1` ),
-#                                            pB2  = sum( `",new.com,"_p.B2`  ) ) %>%
-#                                 mutate( pAB1 = ifelse( is.nan(pAB1), NA, pAB1 ),
-#                                         pB2  = ifelse( is.nan(pB2 ), NA, pB2  ) ) %>%
-#                                 pivot_longer( cols = -c(YEAR), names_to='CAT_VAR', values_to='prop' )" )
-#   eval( parse( text = command.line ) )
-#   rm(command.line)
-  # 
-  # # # poly.degf = 5
-  # # poly.degf = round( ( length( unique(dummy.table$YEAR) ) - 1 ) / 3, 0 )
+   command.line = paste0( "dummy.table = unid.table %>% group_by( YEAR ) %>%
+                                 summarise( pAB1 = sum( `",new.com,"_p.AB1` ),
+                                            pB2  = sum( `",new.com,"_p.B2`  ) ) %>%
+                                 mutate( pAB1 = ifelse( is.nan(pAB1), NA, pAB1 ),
+                                         pB2  = ifelse( is.nan(pB2 ), NA, pB2  ) ) %>%
+                                 pivot_longer( cols = -c(YEAR), names_to='CAT_VAR', values_to='prop' )" )
+   eval( parse( text = command.line ) )
+   rm(command.line)
+   
+   # # poly.degf = 5
+    poly.degf = round( ( length( unique(dummy.table$YEAR) ) - 1 ) / 3, 0 )
   # # ###     ...(-1) to not count the YEAR='TOTAL' row, and divided by three as a subjective attempt prevent 'overfitting'...
   # 
-#   dummy.plot = ggplot( data = dummy.table %>% filter( YEAR != 'TOTAL' & !is.na(prop) ) %>% mutate( YEAR = as.numeric(YEAR) ) ) +
-#     geom_point( aes( x=YEAR, y=prop ) ) +
-#     # stat_smooth( aes( x=YEAR, y=prop ), method = lm, formula = y ~ poly( x,poly.degf ), se=FALSE ) +
-#     geom_hline( data = dummy.table %>% filter( YEAR == 'TOTAL' ),
-#                 aes( yintercept = prop ), linewidth=1.2 ) +
-#     facet_grid( CAT_VAR ~ . , scales = 'free' ) +
-#   
-#     labs( title="", x="Year", y=paste0( "Percent Catch (",new.com,")" ) ) +
-#     expand_limits(y = 0) +
-#     theme_bw() +
-#     theme( text = element_text(size = 11),
-#            axis.text.x = element_text(angle = 90, vjust=0.5),
-#            legend.position = "bottom",
-#            panel.grid.major = element_line(colour = "grey", linewidth = 0.5),
-#            panel.grid.minor = element_line(colour = "grey", linewidth = 0.2),
-#            panel.border = element_rect(colour = "black", fill = NA) )
-#   dummy.plot
-#  # 
-#   dummy.plot = dummy.plot +
-#     geom_abline( intercept=0.23, slope=0, color= 'red', linetype='dashed' ) +    ### SEDAR 32 Ratio
-#     geom_abline( intercept=0.45, slope=0, color='blue', linetype='dashed' )      ### SEDAR 50 Ratio
-#   dummy.plot
+   dummy.plot = ggplot( data = dummy.table %>% filter( YEAR != 'TOTAL' & !is.na(prop) ) %>% mutate( YEAR = as.numeric(YEAR) ) ) +
+     geom_point( aes( x=YEAR, y=prop ) ) +
+     # stat_smooth( aes( x=YEAR, y=prop ), method = lm, formula = y ~ poly( x,poly.degf ), se=FALSE ) +
+     geom_hline( data = dummy.table %>% filter( YEAR == 'TOTAL' ),
+                 aes( yintercept = prop ), linewidth=1.2 ) +
+     facet_grid( CAT_VAR ~ . , scales = 'free' ) +
+   
+     labs( title="", x="Year", y=paste0( "Percent Catch (",new.com,")" ) ) +
+     expand_limits(y = 0) +
+     theme_bw() +
+     theme( text = element_text(size = 11),
+            axis.text.x = element_text(angle = 90, vjust=0.5),
+            legend.position = "bottom",
+            panel.grid.major = element_line(colour = "grey", linewidth = 0.5),
+            panel.grid.minor = element_line(colour = "grey", linewidth = 0.2),
+            panel.border = element_rect(colour = "black", fill = NA) )
+   dummy.plot
+ 
+   dummy.plot = dummy.plot +
+     geom_abline( intercept=0.23, slope=0, color= 'red', linetype='dashed' ) +    ### SEDAR 32 Ratio
+     geom_abline( intercept=0.45, slope=0, color='blue', linetype='dashed' )      ### SEDAR 50 Ratio
+   dummy.plot
 #  # 
 #  # rm( dummy.table, poly.degf, dummy.plot )
   
@@ -686,14 +689,11 @@ if( flag.unid ) {
   ### ***************************************************
   
   ### -- NOTES ON DECISION --
-  ##* *In SEDAR 62, all unidentified Ballistidae were classified as Gray Triggerfish*
-  ##* *Keepin the same decision for S100*
-  ##* *There are a few years, mainly before 1990 where there non-Gray Triggerfish*
-  ##* *were caught, however, most years only Gray Triggerfish were caught*
-  ###     
+  ##* *Consider different ratios for AB1 for 1981-2000 and 2001-2024*
+  ##* *Just dummy ratios to make sure the function is working*    
   
   # unid.ratio = 0.45
-  unid.ratio = data.frame( AB1=1, B2=1 )
+  unid.ratio = data.frame( AB1=0.4, B2=0.6 )
   
   ### ***************************************************
   
@@ -715,7 +715,7 @@ if( flag.unid ) {
   unique(unid.dat$NEW_SCI)
   
   unid.dat2 <- unid.dat %>%
-    filter(NEW_SCI == 'Balistidae')
+    filter(NEW_SCI == 'Carcharhinus spp.')
   
   
   catch.table <- rbind(catch.table, unid.dat2)
