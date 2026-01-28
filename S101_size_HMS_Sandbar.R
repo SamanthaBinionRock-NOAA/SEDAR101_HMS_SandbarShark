@@ -51,13 +51,6 @@ spp.info = dbGetQuery(con, "SELECT *
 #load( paste0( dir,"/ACL_size.RData" ) )
 
 
-
-##* *Are sharks in the average weight files - no*
- #s.dat <- read_sas(data_file = paste0( dir,"/Size/avgwgt_s.sas7bdat" ))
-
- 
- 
- unique(s.dat$NEW_COM)
  
 
 ####################################################################################################################
