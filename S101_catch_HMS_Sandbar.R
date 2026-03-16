@@ -321,7 +321,7 @@ avgwgt.dir = paste0(dir, '/Catch')
 ###       we also provide an additional summary (tab) of the relative breakdown of 'identified' catch
 ###       (identified at the species level), both of which require the objects below...
 
-flag.unid = TRUE
+flag.unid = FALSE
 
 if( flag.unid ) {
   
@@ -360,7 +360,7 @@ if( flag.unid ) {
 ###       although this applicability has yet to be evaluated for any other species (e.g., as a SEDAR 'best practice' ).
 ###       Regardless, it may be requested and so has been incorporated into the standard GenRec scripts...
 
-flag.forhire = TRUE
+flag.forhire = FALSE
 ###   ...where TRUE represents SEDARs for which combined 'CbtHbt' estimates for the MATL/NATL are to be
 ###       separated into 'Cbt' and 'Hbt' components (i.e., no combined for-hire estimates provided in this file )...
 
@@ -857,8 +857,8 @@ if( any( c('TX','LA','MS','AL','FLW','FLE') %in% states ) ) {
   ##* *Usin the proportion of wave 1:waves2-6 because the proportion method is heavily influenced by 1983*
   ###
   # ###   ...where, from the above analysis, we identify what (if any) imputation to apply...
-   #method.MRIP.1981w1 = 'None'
-   method.MRIP.1981w1 = 'prop_w1_w26'
+   method.MRIP.1981w1 = 'None'
+   #method.MRIP.1981w1 = 'prop_w1_w26'
    #method.MRIP.1981w1 = 'avg_82_84'
   
   ### ***************************************************
@@ -1032,8 +1032,8 @@ if( 'TX' %in% states ) {
   ##* *TX catches are low, but there are no non-zero years*
   ##* *Decide to impute since there are no non-zero years*
   ###   ...where, from the above analysis, we identify what (if any) imputation to apply...
-   #method.TPWD.1981.83 = 'None'
-  method.TPWD.1981.83 = 'avg_83_85'
+   method.TPWD.1981.83 = 'None'
+  #method.TPWD.1981.83 = 'avg_83_85'
   
   ### ***************************************************
   
@@ -2014,7 +2014,7 @@ rm( dummy )
 ####################################################################################################################
 
 
-table.ID <- paste0( "GTF_rec_catGEN_ss_",
+table.ID <- paste0( "SBS_rec_catGEN_ss_",
                     substr( first.year, nchar(first.year)-1, nchar(first.year) ),
                     substr( term.year, nchar(term.year)-1, nchar(term.year) ),
                     "_", gsub("-","", Sys.Date() ) )
