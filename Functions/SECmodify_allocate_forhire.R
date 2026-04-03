@@ -72,7 +72,8 @@ partition.forhire = function( genrec.table ) {
   
   ###   The first step of this adjustment is to import the table of ratios that are to be used in partitioning
   ###       any combined for-hire estimates from that MATL & NATL regions (1981-2003)...
-  ratios = read.csv( 'C://Users/matthew.nuttall/Desktop/Functions/import_datasets/ForHire Partitioning Ratios.csv' )
+  dir <- getwd()
+  ratios = read.csv(paste0(dir,'/Functions/import_datasets/ForHire Partitioning Ratios.csv'))
   
   ###     ...which is then modified to allow it's join with our 'genrec.table'...
   ratios = ratios %>%
@@ -105,22 +106,26 @@ partition.forhire = function( genrec.table ) {
     
     mutate( SEC.AVGWGT.WWT    = ifelse( AB1 == 0 & !is.na(lbsest_SECwwt ), 0, lbsest_SECwwt / AB1 ),
             SEC.AVGWGT.GWT    = ifelse( AB1 == 0 & !is.na(lbsest_SECgwt ), 0, lbsest_SECgwt / AB1 ),
-            OST.AVGWGT.FHS.C  = ifelse( A   == 0 & !is.na(WGT_AB1C      ), 0, WGT_AB1C      / A   ),
-            OST.AVGWGT.FHS.H  = ifelse( B1  == 0 & !is.na(WGT_AB1H      ), 0, WGT_AB1H      / B1  ),
+            #OST.AVGWGT.FHS.C  = ifelse( A   == 0 & !is.na(WGT_AB1C      ), 0, WGT_AB1C      / A   ),
+            #OST.AVGWGT.FHS.H  = ifelse( B1  == 0 & !is.na(WGT_AB1H      ), 0, WGT_AB1H      / B1  ),
             OST.AVGWGT.CHTS.C = ifelse( CHTS_CL == 0 & !is.na(CHTS_WAB1C), 0, CHTS_WAB1C    / CHTS_CL ),
             OST.AVGWGT.CHTS.H = ifelse( CHTS_H  == 0 & !is.na(CHTS_WAB1H), 0, CHTS_WAB1H    / CHTS_H  ) ) %>%
     ###     ...where, before adjusting catch (by 'ratio'), I save the originally applied (SEFSC & MRIP) avgwgt estimates
     ###       so that the 'lbsest_SEC' estimates can be recalculated from the newly scaled landings-in-number...
     
     mutate_at( vars( CHTS_CL,CHTS_H,CHTS_RL, AB1,A,B1,B2 ), list( ~ ratio * . ) ) %>%
-    mutate_at( vars( CHTS_VAR_CL,CHTS_VAR_H,CHTS_VAR_RL, VAR_AB1,VAR_B2 ), list( ~ (ratio^2) * . ) ) %>%
+    mutate_at( vars( 
+      #CHTS_VAR_CL,CHTS_VAR_H,CHTS_VAR_RL, 
+      VAR_AB1,VAR_B2 ), list( ~ (ratio^2) * . ) ) %>%
     mutate( lbsest_SECwwt = AB1 * SEC.AVGWGT.WWT,
             lbsest_SECgwt = AB1 * SEC.AVGWGT.GWT,
-            WGT_AB1C = A  * OST.AVGWGT.FHS.C,
-            WGT_AB1H = B1 * OST.AVGWGT.FHS.H,
+            #WGT_AB1C = A  * OST.AVGWGT.FHS.C,
+            #WGT_AB1H = B1 * OST.AVGWGT.FHS.H,
             CHTS_WAB1C = CHTS_CL * OST.AVGWGT.CHTS.C,
             CHTS_WAB1H = CHTS_H  * OST.AVGWGT.CHTS.H ) %>%
-    select( -c( ratio, SEC.AVGWGT.WWT,SEC.AVGWGT.GWT, OST.AVGWGT.FHS.C,OST.AVGWGT.FHS.H, OST.AVGWGT.CHTS.C,OST.AVGWGT.CHTS.H) )
+    select( -c( ratio, SEC.AVGWGT.WWT,SEC.AVGWGT.GWT, 
+                #OST.AVGWGT.FHS.C,OST.AVGWGT.FHS.H, 
+                OST.AVGWGT.CHTS.C,OST.AVGWGT.CHTS.H) )
   
   rm( ratios )
   
@@ -153,7 +158,7 @@ partition.forhire.effort = function( effort.table ) {
   
   ###     ...for which the allocation ratios were developed as part of the S82 research track,
   ###         the final result being an excel worksheet that I manually upload...
-  ratios = read.csv( 'C://Users/matthew.nuttall/Desktop/Functions/import_datasets/ForHire Partitioning Ratios.csv' )
+  ratios = read.csv(paste0(dir,'/Functions/import_datasets/ForHire Partitioning Ratios.csv'))
   
   ###     ...and modify for the join with my 'mrip.effort' table...
   ratios = ratios %>%
