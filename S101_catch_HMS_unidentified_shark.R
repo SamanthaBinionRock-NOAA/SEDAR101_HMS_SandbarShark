@@ -94,7 +94,7 @@ dat <- read_sas(data_file = paste0( dir,"/Catch/hmsspec_rec81_25wv1_16may25.sas7
 
 ###       ...for this assessment, data is pulled for...
 ###
-###           Sandbar Shark - Carcharhinus plumbeus
+###           Unidentified sharks
 ###               - Temporal - include 1981-2024
 ###               - Modes    - includes charter, private, shore, and headboat 
 ###               - Spatial  - ME to TX
@@ -156,11 +156,11 @@ mode_sub <- c( "Priv","Cbt","Hbt","Shore" )
 ###
 ### Moving onto the species-specific filter, I need to pull data for the species of interest...
 ###     Therefore, I start by searching for the appropriate identifiers...
-View( spp.info[grep( "SHARK,SANDBAR", spp.info$COMMON ),] )
-#View( spp.info[grep( "Carcharhinus", spp.info$SCIENTIFIC ),] )
+#View( spp.info[grep( "SHARK,SANDBAR", spp.info$COMMON ),] )
+View( spp.info[grep( "Carcharhinidae", spp.info$SCIENTIFIC ),] )
 
 sppID.type = 'COMMON'
-taxa <- c( "SHARK,SANDBAR" )
+taxa <- c( "SHARK, REQUIEM" )
 
 # sppID.type = 'SCIENTIFIC'
 # taxa <- c( "Lutjanus griseus"  )
@@ -2014,7 +2014,7 @@ rm( dummy )
 ####################################################################################################################
 
 
-table.ID <- paste0( "SBS_rec_catGEN_",
+table.ID <- paste0( "Requium_Family",
                     substr( first.year, nchar(first.year)-1, nchar(first.year) ),
                     substr( term.year, nchar(term.year)-1, nchar(term.year) ),
                     "_", gsub("-","", Sys.Date() ) )
