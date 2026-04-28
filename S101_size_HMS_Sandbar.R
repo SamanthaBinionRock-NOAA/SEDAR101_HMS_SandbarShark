@@ -748,7 +748,7 @@ avgwgt.table = convert.long.table.avgwt( avgwgt.table = avgwgt.table,
 ####################################################################################################################
 ####################################################################################################################
 
-
+size.table2 <- size.table
 
 source( paste0(dir,'/Functions/format_BIOtemplate.R') )
 
@@ -895,7 +895,7 @@ if( 'LA' %in% states ) {
 }
 
 
-saveWorkbook( wb, file=paste0( dir,"/",table.ID,".xlsx" ), overwrite=TRUE )
+saveWorkbook( wb, file=paste0( dir,"/",table.ID,"_SBR.xlsx" ), overwrite=TRUE )
 
 
 
