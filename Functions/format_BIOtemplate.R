@@ -243,7 +243,7 @@ format.BIOtemplate = function( genrec.table, add.strata = NA ) {
             "Gear_Group_Code", "NEW_GEAR", "NEW_GEARN",
             "Jurisdictional_Waters", "NEW_AREA", "NEW_AREAN",
             "Original_Length_Unit", "Observed_FL_mm", "Observed_Maximum_TL_mm", "LNGTH_IMP",
-            "Original_Weight_Unit", "Whole_Weight", "all_lbs", "WGT_IMP", "Condition_Type",
+            "Original_Weight_Unit", "Whole_Weight", "all_lbs", 'CONVERT_LBS', 'LBS', "WGT_IMP", "Condition_Type",
             "WP_SIZE", add.strata[ !is.na(add.strata) & add.strata != 'SID' ]
       ) ) )
   
