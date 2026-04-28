@@ -144,11 +144,20 @@ prop <- sandbar.summary %>%
   filter(INT_YEAR == 1983 & AB1_prop > 0) %>%
   arrange(desc(AB1_prop))
 
-check.1983 <- sandbar %>%
+check.1983 <- sandbar.clean %>%
   filter(INT_YEAR == 1983,
          WAVE     == 3,
          ST       == 45,
          AREA_X   == 5,
+         MODE_FX  == 7,
+         SUB_REG  == 6)
+
+
+check.1983b <- sandbar.clean %>%
+  filter(INT_YEAR == 1983,
+         WAVE     == 3,
+         ST       == 45,
+         AREA_X   == 1,
          MODE_FX  == 7,
          SUB_REG  == 6)
 
