@@ -444,6 +444,7 @@ lengths %>%
 #| echo: false
 #| fig-cap: "Figure. Comparison of discard length distribution by state."
 #| warning: false
+#| eval: false
 
 
 discards <- lengths %>%
@@ -452,7 +453,7 @@ discards <- lengths %>%
 
 max(discards$Observed_FL_mm, na.rm=TRUE)
 
-discards$State_Landed <- factor(discards$State_Landed,
+#discards$State_Landed <- factor(discards$State_Landed,
                                levels=c('MS', 'AL', 'FL'))
 
 
@@ -607,7 +608,7 @@ ggplot(discards.fl, aes(x=Final_Length_mm, colour=hb_reg)) +
 #| fig-height: 8.5
 #| warning: false
 #| label: 'subweighting_reg_annual_discards_charter'
-#| eval: true
+#| eval: false
 
 
 
@@ -723,7 +724,7 @@ ggplot(discards, aes(x=Final_Length_mm, colour=trip_type)) +
 #| fig-height: 8.5
 #| warning: false
 #| label: 'mode_discards'
-#| eval: true
+#| eval: false
 
 
 
@@ -787,7 +788,7 @@ ggplot(discards, aes(x=Final_Length_mm, colour=Fishing_Mode)) +
 
 
 lengths2 <- lengths %>%
-  filter(Fishing_Mode == 'HB') %>%
+  #filter(Fishing_Mode == 'HB') %>%
   group_by(Year, Disposition, bin_1in) %>%
   summarise(nfish = n())
 
@@ -795,7 +796,7 @@ lengths2 <- lengths %>%
 
 ##* *Summarize by disposition type to add to figures*
 disposition.n <- lengths %>%
-  filter(Fishing_Mode == 'HB') %>%
+  #filter(Fishing_Mode == 'HB') %>%
   group_by(Year, Disposition) %>%
   summarise(nfish = n())
 
@@ -850,7 +851,7 @@ ggplot(dat=lengths2, aes(x=bin_1in, y=nfish, fill=Disposition)) +
 #| output: false
 #| echo: false
 #| warning: false
-#| eval: true
+#| eval: false
 
 
 
@@ -941,17 +942,19 @@ write.xlsx(lengths,
 
 # Nominal Discard Length Comps
 
+## 2 cm bins
+
 ```{r}
 #| echo: false
 #| output: false
 #| eval: true
 
 
-##* *Aggregated comps*
+##* *Aggregated comps - 2 cm*
 
 
 ##* *Nominal Discard Length Comps - Rec - MS-FL*
-nom.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/Discard_LenComps/KM_rec_dlfd_agg_singletab_0424_20260313.xlsx'), sheet = 'Agg')
+nom.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/DiscardLenComps/SBS_rec_dlfd_agg_singletab_0423_20260611.xlsx'), sheet = '2cm')
 
 ##* *Remove years with n_fish < 30*
 #nom.l.wide <- subset(nom.l.wide, n_fish >=30)
@@ -959,7 +962,7 @@ nom.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/Discard_LenComps/KM_rec_dlfd_ag
   
 ##* *Reorganize the data so the lengths are rows instead of columns*
 nom.l.rec.g <- nom.l.wide.rec %>%
-  pivot_longer(cols = !c(Fleet, n_fish, n_trip),
+  pivot_longer(cols = !c(Fleet, n_fish, n_trip, Time_Block),
                names_to = "bin",
                values_to = "Len_Comp")
 
@@ -968,6 +971,9 @@ nom.l.rec.g$Comp <- "Nominal"
 
 nom.l.rec.g$bin <- as.numeric(nom.l.rec.g$bin)
 
+
+nom.l.rec.g <- nom.l.rec.g %>%
+  filter(Time_Block != 'pooled')
 
 
 ```
@@ -978,25 +984,26 @@ nom.l.rec.g$bin <- as.numeric(nom.l.rec.g$bin)
 #| fig-width: 11
 #| fig-height: 8.5
 #| warning: false
-#| label: 'annual_nom_discard_agg'
+#| label: 'nom_discard_2cm'
 #| eval: true
 
 
 
-disc.nobs <- nom.l.wide.rec[,c(1,2,3)] 
+disc.nobs <- nom.l.wide.rec[,c(1,2,3,4)] 
 
-gr.nobs <-disc.nobs %>%
-  filter(Fleet == 'GR')
+t1.nobs <-disc.nobs %>%
+  filter(Time_Block == '2004to2007')
 
-hb.nobs <-disc.nobs %>%
-  filter(Fleet == 'HB')
+t2.nobs <-disc.nobs %>%
+  filter(Time_Block == '2008to2023')
+
+pooled.nobs <-disc.nobs %>%
+  filter(Time_Block == 'pooled')
 
 
+length.type <- 'FL (cm)'
 
-
-#length.type <- 'FL (cm)'
-
-ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, colour=Fleet)) +
+ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, colour=Time_Block)) +
     geom_line(linewidth=1) +
          xlab("Bin, FL (cm)") +
          ylab("Proportion of Annual Sample") +
@@ -1004,8 +1011,9 @@ ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, colour=Fleet)) +
          scale_color_manual(name = 'Comp', 
                  values = c('magenta', 'darkblue', 'deeppink')) +
   #scale_x_continuous(breaks=seq(20, 100, by=20), limits=c(0, 120), expand=c(0,0)) +
-  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=gr.nobs, colour ='magenta2', size=3) +
-  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=hb.nobs, colour ='darkblue', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=t1.nobs, colour ='magenta2', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=t2.nobs, colour ='darkblue', size=3) +
+  #geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=3.1, hjust=1.2, data=pooled.nobs, colour ='deeppink', size=3) +
   #facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
   theme_minimal() +
   theme(strip.background = element_rect(fill="white", size=1)) +
@@ -1023,6 +1031,236 @@ ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, colour=Fleet)) +
 # 
 
 # 
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Annual nominal discard length composition. Note differences in y-axis scale"
+#| warning: false
+#| label: 'nom_discard_2cm_hist'
+#| eval: true
+
+
+
+disc.nobs <- nom.l.wide.rec[,c(1,2,3,4)] 
+
+t1.nobs <-disc.nobs %>%
+  filter(Time_Block == '2004to2007')
+
+t2.nobs <-disc.nobs %>%
+  filter(Time_Block == '2008to2023')
+
+pooled.nobs <-disc.nobs %>%
+  filter(Time_Block == 'pooled')
+
+
+length.type <- 'FL (cm)'
+
+
+lbin.type <- 'bin, (FL)'
+
+ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, fill=Time_Block)) +
+    geom_histogram(position = "identity", stat="identity", alpha=0.6) +
+         xlab(paste0(lbin.type)) +
+         ylab("Proportion of Annual Sample") +
+         labs(title = "Nominal Discard Length - 2 cm bins") +
+         scale_fill_manual(name = 'Time Block', 
+                 values = c('magenta', 'navy')) +
+scale_x_continuous(breaks=seq(0, 130, by=10), limits=c(0, 132), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=t1.nobs, colour ='magenta', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=t2.nobs, colour ='navy', size=3) +
+  #geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=3.1, hjust=1.2, data=prsh.nobs, colour ='blue2', size=3) +
+  #facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+  theme_minimal() +
+  #theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=8)) 
+
+
+
+
+```
+
+## 5 cm
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+##* *Aggregated comps - 5 cm*
+
+
+##* *Nominal Discard Length Comps - Rec - MS-FL*
+nom.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/DiscardLenComps/SBS_rec_dlfd_agg_singletab_0423_20260611.xlsx'), sheet = '5cm')
+
+##* *Remove years with n_fish < 30*
+#nom.l.wide <- subset(nom.l.wide, n_fish >=30)
+  
+  
+##* *Reorganize the data so the lengths are rows instead of columns*
+nom.l.rec.g <- nom.l.wide.rec %>%
+  pivot_longer(cols = !c(Fleet, n_fish, n_trip, Time_Block),
+               names_to = "bin",
+               values_to = "Len_Comp")
+
+nom.l.rec.g$Comp <- "Nominal"
+
+
+nom.l.rec.g$bin <- as.numeric(nom.l.rec.g$bin)
+
+
+nom.l.rec.g <- nom.l.rec.g %>%
+  filter(Time_Block != 'pooled')
+
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Annual nominal discard length composition. Note differences in y-axis scale"
+#| warning: false
+#| label: 'nom_discard_5cm_hist'
+#| eval: true
+
+
+
+disc.nobs <- nom.l.wide.rec[,c(1,2,3,4)] 
+
+t1.nobs <-disc.nobs %>%
+  filter(Time_Block == '2004to2007')
+
+t2.nobs <-disc.nobs %>%
+  filter(Time_Block == '2008to2023')
+
+pooled.nobs <-disc.nobs %>%
+  filter(Time_Block == 'pooled')
+
+
+length.type <- 'FL (cm)'
+
+
+lbin.type <- 'bin, (FL)'
+
+ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, fill=Time_Block)) +
+    geom_histogram(position = "identity", stat="identity", alpha=0.6) +
+         xlab(paste0(lbin.type)) +
+         ylab("Proportion of Annual Sample") +
+         labs(title = "Nominal Discard Length - 5 cm bins") +
+         scale_fill_manual(name = 'Time Block', 
+                 values = c('magenta', 'navy')) +
+scale_x_continuous(breaks=seq(0, 130, by=10), limits=c(0, 132), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=t1.nobs, colour ='magenta', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=t2.nobs, colour ='navy', size=3) +
+  #geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=3.1, hjust=1.2, data=prsh.nobs, colour ='blue2', size=3) +
+  #facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+  theme_minimal() +
+  #theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=8)) 
+
+
+
+
+
+```
+
+## 10 cm
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+##* *Aggregated comps - 10 cm*
+
+
+##* *Nominal Discard Length Comps - Rec - MS-FL*
+nom.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/DiscardLenComps/SBS_rec_dlfd_agg_singletab_0423_20260611.xlsx'), sheet = '10cm')
+
+##* *Remove years with n_fish < 30*
+#nom.l.wide <- subset(nom.l.wide, n_fish >=30)
+  
+  
+##* *Reorganize the data so the lengths are rows instead of columns*
+nom.l.rec.g <- nom.l.wide.rec %>%
+  pivot_longer(cols = !c(Fleet, n_fish, n_trip, Time_Block),
+               names_to = "bin",
+               values_to = "Len_Comp")
+
+nom.l.rec.g$Comp <- "Nominal"
+
+
+nom.l.rec.g$bin <- as.numeric(nom.l.rec.g$bin)
+
+
+nom.l.rec.g <- nom.l.rec.g %>%
+  filter(Time_Block != 'pooled')
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Annual nominal discard length composition. Note differences in y-axis scale"
+#| warning: false
+#| label: 'nom_discard_10cm_hist'
+#| eval: true
+
+
+
+disc.nobs <- nom.l.wide.rec[,c(1,2,3,4)] 
+
+t1.nobs <-disc.nobs %>%
+  filter(Time_Block == '2004to2007')
+
+t2.nobs <-disc.nobs %>%
+  filter(Time_Block == '2008to2023')
+
+pooled.nobs <-disc.nobs %>%
+  filter(Time_Block == 'pooled')
+
+
+length.type <- 'FL (cm)'
+
+
+lbin.type <- 'bin, (FL)'
+
+ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, fill=Time_Block)) +
+    geom_histogram(position = "identity", stat="identity", alpha=0.6) +
+         xlab(paste0(lbin.type)) +
+         ylab("Proportion of Annual Sample") +
+         labs(title = "Nominal Discard Length - 10 cm bins") +
+         scale_fill_manual(name = 'Time Block', 
+                 values = c('magenta', 'navy')) +
+scale_x_continuous(breaks=seq(0, 130, by=10), limits=c(0, 132), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=t1.nobs, colour ='magenta', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=t2.nobs, colour ='navy', size=3) +
+  #geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=3.1, hjust=1.2, data=prsh.nobs, colour ='blue2', size=3) +
+  #facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+  theme_minimal() +
+  #theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=8)) 
+
+
+
+
+```
 
 # Nominal and Weighted Comparisons
 
@@ -1184,7 +1422,7 @@ ggplot(dat=disc.comps, aes(x=bin, y=Len_Comp, colour=Comp)) +
 ```{r}
 #| echo: false
 #| output: false
-#| eval: true
+#| eval: false
 
 
 ##* *Define directory*
@@ -1218,7 +1456,7 @@ fl.lengths <- fl.lengths %>%
 ```{r}
 #| echo: false
 #| output: false
-#| eval: true
+#| eval: false
 
 
 hb.trips <- fl.lengths %>%
@@ -1233,7 +1471,7 @@ hb.trips <- fl.lengths %>%
 ```{r}
 #| echo: false
 #| output: false
-#| eval: true
+#| eval: false
 
 
 ##* *Define directory*
@@ -1267,7 +1505,7 @@ fl.lengths <- fl.lengths %>%
 ```{r}
 #| echo: false
 #| output: false
-#| eval: true
+#| eval: false
 
 
 cb.trips <- fl.lengths %>%
