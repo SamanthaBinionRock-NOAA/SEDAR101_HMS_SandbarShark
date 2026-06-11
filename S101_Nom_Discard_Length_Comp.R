@@ -1385,12 +1385,12 @@ saveWorkbook(wb, file=paste0(dir, "/DiscardLenComps/", table.ID, ".xlsx"), overw
 
 agg.comps_2cm <- rbind(pooled_2cm, tblocks_2cm)
 
-agg.comps_5cm <- rbind(pooled_2cm, tblocks_5cm)
+agg.comps_5cm <- rbind(pooled_5cm, tblocks_5cm)
 
-agg.comps_10cm <- rbind(pooled_2cm, tblocks_10cm)
+agg.comps_10cm <- rbind(pooled_10cm, tblocks_10cm)
 
 
-table.ID <- paste0("TIL_rec_dlfd_agg_singletab_",
+table.ID <- paste0("SBS_rec_dlfd_agg_singletab_",
                    substr(first.year, nchar(first.year)-1, nchar(first.year)),
                    substr(last.year, nchar(last.year)-1, nchar(last.year)),
                    "_", gsub("-","", Sys.Date()))
