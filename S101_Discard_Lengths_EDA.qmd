@@ -1,0 +1,1280 @@
+---
+title: "S101 HMS Sandbar Shark Rec Discards EDA"
+author: "Samantha Binion-Rock"
+date: "`r format(Sys.Date(), '%m-%d-%Y')`"
+html_notebook:
+page-layout: full
+toc: true
+toc-location: left
+editor: visual
+---
+
+## 
+
+# Discard Lengths EDA
+
+```{r}
+#| output: false
+#| echo: false
+#| warning: false
+#| label: 'load packages'
+
+
+librarian::shelf(tidyverse, ggplot2, dplyr, gt, openxlsx, readxl, haven, doBy, xtable, reshape2, ExPanDaR, png, grid, gridExtra, ggpubr, withr, flextable, officer, janitor)
+
+
+
+```
+
+```{r}
+#| output: false
+#| echo: false
+#| warning: false
+#| label: 'load data'
+
+##* *Define directory*
+dir <- getwd()
+
+##* *Prevents R from converting any long numbers (ID codes) to scientific notation*
+options(scipen=999)
+
+
+##* *Import data*
+lengths <- readxl::read_xlsx(paste0(dir,'/DiscardLenComps/SBS_rec_dsizAPAIS_0424_20260609.xlsx'), sheet = 'sbs', guess_max = 500000)
+
+
+
+
+##* *Order states geographically*
+unique(lengths$State_Landed)
+
+lengths$State_Landed <- factor(lengths$State_Landed,
+                               levels=c('NJ', 'DE', 'MD', 'VA',
+                                        'NC', 'SC', 'GA', 'FL'))
+
+
+
+
+##* *Standardize disposition*
+unique(lengths$Disposition)
+
+
+##* *Remove spaces and commas from Disposition so I can recode*
+#lengths$Disposition <- gsub(",","",as.character(lengths$Disposition))
+
+#lengths$Disposition <- gsub(" ","_",as.character(lengths$Disposition))
+
+
+
+#lengths$Disposition <- recode(lengths$Disposition,
+#                           D                        = 'Discard',
+#                           H                        = 'Harvest',
+#                           Released_alive_not_legal = 'Discard',
+#                           Kept_to_eat              = 'Harvest',
+#                           Released_dead            = 'Harvest',
+#                           Released_alive_legal     = 'Discard',
+#                           Preyed_upon              = 'Discard')
+
+
+
+
+##* *Standardize Fishing Mode*
+
+
+#unique(lengths$Fishing_Mode)
+
+
+#lengths$Fishing_Mode <- recode(lengths$Fishing_Mode,
+#                           Charter  = 'CB',
+#                           Headboat = 'HB',
+#                           C        = 'CB')
+
+
+
+
+#lengths$trip_type <- factor(lengths$trip_type,
+#                            levels=c('H', 'Q', 'F', 'M'))
+
+
+lengths$Final_Length_mm <- lengths$Observed_FL_mm
+
+
+
+##* *Drop samples with no lengths*
+lengths <- lengths %>%
+  mutate(Length_Flag = case_when(
+    Final_Length_mm > 1 ~ 0,
+    is.na(Final_Length_mm) ~ 1))
+
+
+check <- lengths %>%
+  filter(Length_Flag == 1) ## 0 samples
+
+
+lengths <- lengths %>%
+  filter(Length_Flag == 0)
+
+
+
+
+
+
+
+##* *There is an error in the data from MS*
+##* *Max total length is in the length field, not to replace with FL values*
+
+##* *Make data set with only MS*
+#ms <- lengths %>%
+#  filter(State_Landed == 'MS')
+
+#unique(lengths$State_Landed)
+
+
+##* *Remove MS from lengths*
+#lengths <- lengths %>%
+#  filter(State_Landed %in% c('AL', 'FL'))
+
+
+##* *Replace max length with FL for MS*
+#ms <- subset(ms, select = -Final_Length_mm)
+
+#ms$Final_Length_mm <- ms$FORK_LENGTH
+
+
+##* *Add ms back to lengths*
+#lengths <- rbind(lengths, ms)
+
+
+
+##* *Define length type*
+length.type <- 'FL (mm)'
+```
+
+```{r}
+#| output: false
+#| echo: false
+#| warning: false
+#| eval: true
+
+
+
+##* *Define size bins - cm*
+min(lengths$Final_Length_mm, na.rm=TRUE)
+max(lengths$Final_Length_mm, na.rm=TRUE)
+
+
+bin_size <- 5
+
+min_size <- 5  
+
+len_plus <- 125
+
+up_bin_limit <- 130 ##defining as len_plus + bin_size (e.g. 121 + 1 cm)
+
+
+
+##* *Define 1 cm size bins*
+##* *For SA, need to use rnd function to ensure proper rounding (0.5 gets rounded up)*
+rnd = function(x) trunc(x+0.5)
+
+#rec.lengths$Final_Length_cm <- rnd(x=rec.lengths$Final_Length_mm/10)
+
+
+##* *For GOM, use trunc function to label the floor*
+
+lengths$Final_Length_cm <- trunc(lengths$Final_Length_mm/10)
+
+
+
+
+##* *Creating proper size bins based on assessment parameters*
+##* *Labeling floor of bin for GOM and middle for SA*
+lengths <- lengths %>%
+  mutate(bin_range = cut(Final_Length_cm,
+                         breaks = seq(min_size, up_bin_limit, 
+                                      by=bin_size),
+                         include.lowest = T,
+                         right = F),
+         bin       = cut(Final_Length_cm,
+                         breaks = seq(min_size, up_bin_limit, 
+                                      by=bin_size),
+                         labels = seq(min_size, len_plus, 
+                                      by=bin_size),
+                         include.lowest = T,
+                         right = F))
+
+
+
+
+
+min(lengths$Final_Length_mm)
+max(lengths$Final_Length_mm)
+
+
+
+
+##* *Assign plus bins*
+lengths.na <- lengths %>%
+  filter(is.na(bin))   ##all lengths assigned
+
+#lengths.na <- lengths.na[,1:22]
+
+#lengths.na <- lengths %>%
+#  mutate(bin = case_when(
+#         Final_Length_cm < 21 ~ 21,
+#         Final_Length_cm > 99 ~ 99,
+#         .default = NA))
+
+
+
+##* *Drop samples with unassigned bins from lengths*
+#lengths <- lengths %>%
+#  filter(!is.na(bin))
+
+
+##* *Combine lengths and lengths.na*
+#lengths <- rbind(lengths, lengths.na)
+
+
+
+
+
+##* *Convert Fork TL in mm to Fork TL in inches*
+lengths$FL_inch <- lengths$Final_Length_mm * 0.0393701
+
+
+##* *Create 1 inch length bin*
+lengths$bin_1in <- rnd(x=lengths$FL_inch)
+
+
+
+
+##* *Assign potential subweighting region of MS, AL, NWFL vs SWFL*
+#lengths <- lengths %>%
+#  mutate(Sub_Reg = case_when(
+#    State_Landed %in% c('MS', 'AL') ~ 'North',
+#    hb_reg == 'NWFL' ~ 'North',
+#    hb_reg == 'SWFL' ~ 'South'))
+
+
+
+```
+
+## Sample Sizes by Data Provider
+
+```{r}
+#| echo: false
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Table: Number of discarded fish lengths from each data provider.")
+lengths %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, Data_Provider) %>%
+  adorn_totals(c("row", "col"))
+
+
+```
+
+```{r}
+#| echo: false
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Table: Number of harvested fish lengths from each data provider.")
+lengths %>%
+  filter(Disposition == 'Harvest') %>%
+  tabyl(Year, Data_Provider) %>%
+  adorn_totals(c("row", "col"))
+
+
+```
+
+## Sample Sizes by State - Harvest
+
+```{r}
+#| echo: false
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Table: Number of harvested fish lengths from each state.")
+lengths %>%
+  filter(Disposition == 'Harvest') %>%
+  tabyl(Year, State_Landed) %>%
+  adorn_totals(c("row", "col"))
+
+```
+
+## Sample Sizes by State - Discards
+
+```{r}
+#| echo: false
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Number of discarded fish lengths from each state.")
+lengths %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, State_Landed) %>%
+  adorn_totals(c("row", "col"))
+
+```
+
+## Sample Sizes by Disposition
+
+```{r}
+#| echo: false
+
+
+
+
+paste0("Table: Number of harvested and discarded fish lengths.")
+lengths %>%
+  tabyl(Year, Disposition) %>%
+  adorn_totals(c("row", "col"))
+
+```
+
+## Sample Sizes - Discards
+
+```{r}
+#| echo: false
+
+
+
+
+paste0("Table: Number of discarded fish lengths by trip type.")
+lengths %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, Fishing_Mode) %>%
+  adorn_totals(c("row", "col"))
+
+```
+
+## Sample Sizes by Trip Type
+
+```{r}
+#| echo: false
+#| eval: false
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Number of discarded fish lengths from each trip type.")
+lengths %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, Trip_Type) %>%
+  adorn_totals(c("row", "col"))
+
+
+```
+
+## Sample Sizes by Mode
+
+```{r}
+#| echo: false
+#| eval: true
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Number of discarded fish lengths from each mode")
+lengths %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, Fishing_Mode) %>%
+  adorn_totals(c("row", "col"))
+
+
+
+```
+
+## Sample Sizes by Data Provider and Mode - Discards
+
+```{r}
+#| echo: false
+#| eval: true
+
+#unique(lengths$State_Landed)
+
+
+
+paste0("Table: Number of discarded fish lengths from each trip type.")
+lengths %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, Data_Provider, Fishing_Mode) %>%
+  adorn_totals(c("row", "col"))
+
+
+
+```
+
+## Sample Sizes by Potential Weighting Subregion - Charter
+
+```{r}
+#| echo: false
+#| eval: false
+
+
+
+paste0("Table: Number of discarded fish by weighting subregion.")
+lengths %>%
+  filter(Fishing_Mode == 'CB') %>%
+  filter(Disposition == 'Discard') %>%
+  tabyl(Year, Sub_Reg) %>%
+  adorn_totals(c("row", "col"))
+
+
+```
+
+## Length Distribution by State - Discards
+
+### Years Aggregated
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of discard length distribution by state."
+#| warning: false
+
+
+discards <- lengths %>%
+  filter(Disposition == 'Discard')
+
+
+max(discards$Observed_FL_mm, na.rm=TRUE)
+
+discards$State_Landed <- factor(discards$State_Landed,
+                               levels=c('MS', 'AL', 'FL'))
+
+
+state.dis.obs <- discards %>% 
+  left_join(lengths %>% group_by(State_Landed) %>% summarise(N=n()))%>%
+  mutate(Label=paste0(State_Landed,' (n = ',N,')'))
+
+
+
+
+
+
+
+ggplot(state.dis.obs, aes(x=Final_Length_mm)) +
+       geom_density(linewidth=1) +
+       xlab(paste0(length.type)) +
+       ylab("Density") +
+       labs(title = "")+ 
+       #scale_color_manual(name = 'State', 
+         #    values = c('deeppink', 'darkblue', 'darkorange')) +
+  scale_x_continuous(breaks=seq(100,900,100), limits=c(0,950), expand=c(0,0)) +
+    #facet_wrap(~as.factor(Year), ncol=8, scales = 'freey') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title=element_blank()) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=9)) 
+```
+
+### Annual
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of annual discard length distribution by state. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'state_annual_discards'
+#| eval: false
+
+
+
+state.nobs <- discards %>%
+  group_by(Year, State_Landed) %>%
+  summarise(N = n())
+
+#ms.nobs <-state.nobs %>%
+#  filter(State_Landed == 'MS')
+
+#al.nobs <-state.nobs %>%
+#  filter(State_Landed == 'AL')
+
+fl.nobs <- state.nobs %>%
+  filter(State_Landed == 'FL')
+
+
+
+ggplot(discards, aes(x=Final_Length_mm, colour=State_Landed)) +
+       geom_density(linewidth=1) +
+       xlab(paste0(length.type)) +
+       ylab("Density") +
+       labs(title = "")+ 
+       scale_color_manual(name = 'State', 
+              values = c('deeppink', 'darkorange', 'darkblue')) +
+  scale_x_continuous(breaks=seq(0,900,100), limits=c(0,850), expand=c(0,0)) +
+  #geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=ms.nobs, colour ='deeppink', size=3) +
+   # geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=2.3, hjust=1.2, data=al.nobs, colour ='darkorange', size=3) +
+   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=3.5, hjust=1.2, data=fl.nobs, colour ='darkblue', size=3) +
+  facet_wrap(~as.factor(Year), ncol=5, scale='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title=element_blank()) +
+  theme(axis.text=element_text(size=7),
+        text=element_text(size=7)) 
+```
+
+## Length Distribution by FL Reg
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of annual discard length distribution by FL region. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'fl_reg_annual_discards'
+#| eval: false
+
+
+
+
+discards.fl <- discards %>%
+  filter(State_Landed == 'FL')
+
+unique(discards.fl$hb_reg)
+
+
+fl.nobs <- discards.fl %>%
+  group_by(Year, hb_reg) %>%
+  summarise(N = n())
+
+nwfl.nobs <-fl.nobs %>%
+  filter(hb_reg == 'NWFL')
+
+swfl.nobs <-fl.nobs %>%
+  filter(hb_reg == 'SWFL')
+
+
+
+
+##* *Order regions geographically*
+discards.fl$hb_reg <- factor(discards.fl$hb_reg,
+                               levels=c('NWFL', 'SWFL'))
+
+
+
+
+ggplot(discards.fl, aes(x=Final_Length_mm, colour=hb_reg)) +
+       geom_density(linewidth=1) +
+       xlab(paste0(length.type)) +
+       ylab("Density") +
+       labs(title = "")+ 
+       scale_color_manual(name = 'hb_reg', 
+              values = c('deeppink', 'purple4', 'darkorange', 'darkblue')) +
+  scale_x_continuous(breaks=seq(100,600,100), limits=c(0,650), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=nwfl.nobs, colour ='deeppink', size=3) +
+   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=2.3, hjust=1.2, data=swfl.nobs, colour ='purple4', size=3) +
+   #geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=3.5, hjust=1.2, data=keys.nobs, colour ='darkblue', size=3) +
+  facet_wrap(~as.factor(Year), ncol=5, scale='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title=element_blank()) +
+  theme(axis.text=element_text(size=7),
+        text=element_text(size=7)) 
+```
+
+## Length Distribution by Potential Weighting Subregion
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of annual discard length distribution by potential subweighting region. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'subweighting_reg_annual_discards_charter'
+#| eval: true
+
+
+
+
+
+subreg.nobs <- discards %>%
+  group_by(Year, Sub_Reg) %>%
+  summarise(N = n())
+
+n.nobs <- subreg.nobs %>%
+  filter(Sub_Reg == 'North')
+
+s.nobs <- subreg.nobs %>%
+  filter(Sub_Reg == 'South')
+
+
+
+
+##* *Order regions geographically*
+#discards.fl$hb_reg <- factor(discards.fl$hb_reg,
+#                               levels=c('NWFL', 'SWFL'))
+
+
+cb.discards <- discards %>%
+  filter(Fishing_Mode == 'CB')
+
+
+ggplot(cb.discards, aes(x=Final_Length_mm, colour=Sub_Reg)) +
+       geom_density(linewidth=1) +
+       xlab(paste0(length.type)) +
+       ylab("Density") +
+       labs(title = "")+ 
+       scale_color_manual(name = 'hb_reg', 
+              values = c('deeppink', 'purple4', 'darkorange', 'darkblue')) +
+  scale_x_continuous(breaks=seq(100,600,100), limits=c(0,650), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=n.nobs, colour ='deeppink', size=3) +
+   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=2.3, hjust=1.2, data=s.nobs, colour ='purple4', size=3) +
+   #geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=3.5, hjust=1.2, data=keys.nobs, colour ='darkblue', size=3) +
+  facet_wrap(~as.factor(Year), ncol=5, scale='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title=element_blank()) +
+  theme(axis.text=element_text(size=7),
+        text=element_text(size=7)) 
+
+```
+
+## Length Distribution by Trip Type
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of annual discard length distribution by FL region. Note differences in y-axis scale."
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'trip_type_discards'
+#| eval: false
+
+
+
+
+type.nobs <- discards %>%
+  group_by(Year, trip_type) %>%
+  summarise(N = n())
+
+h.nobs <-type.nobs %>%
+  filter(trip_type == 'H')
+
+q.nobs <-type.nobs %>%
+  filter(trip_type == 'Q')
+
+f.nobs <-type.nobs %>%
+  filter(trip_type == 'F')
+
+m.nobs <-type.nobs %>%
+  filter(trip_type == 'M')
+
+
+
+
+ggplot(discards, aes(x=Final_Length_mm, colour=trip_type)) +
+       geom_density(linewidth=1) +
+       xlab("Max TL (mm)") +
+       ylab("Density") +
+       labs(title = "")+ 
+       scale_color_manual(name = 'trip_type', 
+              values = c('deeppink', 'darkorange', 'darkblue','purple')) +
+  scale_x_continuous(breaks=seq(250,1300,250), limits=c(50,1400), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=h.nobs, colour ='deeppink', size=3) +
+   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=2.3, hjust=1.2, data=q.nobs, colour ='darkorange', size=3) +
+   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=3.5, hjust=1.2, data=f.nobs, colour ='darkblue', size=3) +
+  geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=4.7, hjust=1.2, data=m.nobs, colour ='purple', size=3) +
+  facet_wrap(~as.factor(Year), ncol=5, scale='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title=element_blank()) +
+  theme(axis.text=element_text(size=7),
+        text=element_text(size=7)) 
+```
+
+## Length Distribution by Mode
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of annual discard length distribution by FL region. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'mode_discards'
+#| eval: true
+
+
+
+
+#type.nobs <- discards %>%
+#  group_by(Year, trip_type) %>%
+#  summarise(N = n())
+
+#h.nobs <-type.nobs %>%
+#  filter(trip_type == 'H')
+
+#q.nobs <-type.nobs %>%
+#  filter(trip_type == 'Q')
+
+#f.nobs <-type.nobs %>%
+#  filter(trip_type == 'F')
+
+#m.nobs <-type.nobs %>%
+#  filter(trip_type == 'M')
+
+
+
+
+ggplot(discards, aes(x=Final_Length_mm, colour=Fishing_Mode)) +
+       geom_density(linewidth=1) +
+       xlab(paste0(length.type)) +
+       ylab("Density") +
+       labs(title = "")+ 
+       scale_color_manual(name = 'trip_type', 
+              values = c('deeppink', 'darkorange', 'darkblue','purple')) +
+  scale_x_continuous(breaks=seq(100,900,100), limits=c(0,950), expand=c(0,0)) +
+#  geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=h.nobs, colour ='deeppink', size=3) +
+#   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=2.3, hjust=1.2, data=q.nobs, colour ='darkorange', size=3) +
+#   geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=3.5, hjust=1.2, data=f.nobs, colour ='darkblue', size=3) +
+#  geom_text(aes(label=paste0('n=', N)), x=Inf, y=Inf, vjust=4.7, hjust=1.2, data=m.nobs, colour ='purple', size=3) +
+  facet_wrap(~as.factor(Year), ncol=5, scale='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title=element_blank()) +
+  theme(axis.text=element_text(size=7),
+        text=element_text(size=7)) 
+```
+
+# Harvested vs Discarded Lengths
+
+## Headboat
+
+```{r}
+#| output: false
+#| echo: false
+#| warning: false
+#| eval: true
+
+
+
+
+##* *Summarize number of harvested and discarded lengths by 1 inch length bin*
+
+
+lengths2 <- lengths %>%
+  filter(Fishing_Mode == 'HB') %>%
+  group_by(Year, Disposition, bin_1in) %>%
+  summarise(nfish = n())
+
+
+
+##* *Summarize by disposition type to add to figures*
+disposition.n <- lengths %>%
+  filter(Fishing_Mode == 'HB') %>%
+  group_by(Year, Disposition) %>%
+  summarise(nfish = n())
+
+
+harvest.n <- disposition.n %>%
+  filter(Disposition == 'Harvest')
+
+harvest <- harvest.n[,]
+
+discard.n <- disposition.n %>%
+  filter(Disposition == 'Discard')
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of harvested and discarded length distributions."
+#| fig-align: 'left'
+#| warning: false
+#| label: 'annual_harvest_vs_discard_hb'
+#| eval: false
+
+
+
+ggplot(dat=lengths2, aes(x=bin_1in, y=nfish, fill=Disposition)) +
+    geom_bar(stat='identity')+
+    xlab("FL (in)") +
+    ylab("n") +
+    #geom_vline(xintercept=20, linetype='dashed', color='black') +
+    #labs(title = "Nominal Length Compositions - GR") +
+    #scale_x_continuous(breaks=seq(10, 50, by=10), limits=c(0, 50), expand=c(0,0)) +
+  scale_fill_manual(name = 'Disposition', 
+             values = c('red', 'darkblue')) +
+    facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+    geom_text(aes(label=paste0('n=', nfish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=discard.n, colour ='red', size=3) +
+    geom_text(aes(label=paste0('n=', nfish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=harvest.n, colour ='darkblue', size=3) +
+    theme_minimal() +
+    theme(strip.background = element_rect(fill="white", size=1)) +
+    theme(strip.text = element_text(size=8)) +
+    theme(plot.title = element_text(hjust=0.5)) +
+    theme(legend.position = 'bottom') +
+    #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    theme(axis.text=element_text(size=8),
+          text=element_text(size=8)) 
+
+```
+
+## Charter
+
+```{r}
+#| output: false
+#| echo: false
+#| warning: false
+#| eval: true
+
+
+
+
+##* *Summarize number of harvested and discarded lengths by 1 inch length bin*
+
+
+lengths2 <- lengths %>%
+  filter(Fishing_Mode == 'CB') %>%
+  group_by(Year, Disposition, bin_1in) %>%
+  summarise(nfish = n())
+
+
+
+##* *Summarize by disposition type to add to figures*
+disposition.n <- lengths %>%
+  filter(Fishing_Mode == 'CB') %>%
+  group_by(Year, Disposition) %>%
+  summarise(nfish = n())
+
+
+harvest.n <- disposition.n %>%
+  filter(Disposition == 'Harvest')
+
+harvest <- harvest.n[,]
+
+discard.n <- disposition.n %>%
+  filter(Disposition == 'Discard')
+
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of harvested and discarded length distributions."
+#| fig-align: 'left'
+#| warning: false
+#| label: 'annual_harvest_vs_discard_cb'
+#| eval: false
+
+
+
+ggplot(dat=lengths2, aes(x=bin_1in, y=nfish, fill=Disposition)) +
+    geom_bar(stat='identity')+
+    xlab("FL (in)") +
+    ylab("n") +
+    #geom_vline(xintercept=20, linetype='dashed', color='black') +
+    #labs(title = "Nominal Length Compositions - GR") +
+    #scale_x_continuous(breaks=seq(10, 50, by=10), limits=c(0, 50), expand=c(0,0)) +
+  scale_fill_manual(name = 'Disposition', 
+             values = c('red', 'darkblue')) +
+    facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+    geom_text(aes(label=paste0('n=', nfish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=discard.n, colour ='red', size=3) +
+    geom_text(aes(label=paste0('n=', nfish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=harvest.n, colour ='darkblue', size=3) +
+    theme_minimal() +
+    theme(strip.background = element_rect(fill="white", size=1)) +
+    theme(strip.text = element_text(size=8)) +
+    theme(plot.title = element_text(hjust=0.5)) +
+    theme(legend.position = 'bottom') +
+    #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    theme(axis.text=element_text(size=8),
+          text=element_text(size=8)) 
+
+
+```
+
+```{r}
+#| echo: false
+#| eval: false
+
+##* *Export the length data that has bins assigned*
+##* *No samples removed from data*
+
+out.name <- paste0("Discard_LenComps/S99_KM_obs_len_final_", Sys.Date(), ".xlsx")
+
+
+write.xlsx(lengths, 
+           file = out.name, 
+           sheetName = "KM", 
+           colNames = TRUE, 
+           rowNames = FALSE, 
+           append = FALSE,
+           overwrite=TRUE) 
+
+
+```
+
+# Nominal Discard Length Comps
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+##* *Aggregated comps*
+
+
+##* *Nominal Discard Length Comps - Rec - MS-FL*
+nom.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/Discard_LenComps/KM_rec_dlfd_agg_singletab_0424_20260313.xlsx'), sheet = 'Agg')
+
+##* *Remove years with n_fish < 30*
+#nom.l.wide <- subset(nom.l.wide, n_fish >=30)
+  
+  
+##* *Reorganize the data so the lengths are rows instead of columns*
+nom.l.rec.g <- nom.l.wide.rec %>%
+  pivot_longer(cols = !c(Fleet, n_fish, n_trip),
+               names_to = "bin",
+               values_to = "Len_Comp")
+
+nom.l.rec.g$Comp <- "Nominal"
+
+
+nom.l.rec.g$bin <- as.numeric(nom.l.rec.g$bin)
+
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Annual nominal discard length composition. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'annual_nom_discard_agg'
+#| eval: true
+
+
+
+disc.nobs <- nom.l.wide.rec[,c(1,2,3)] 
+
+gr.nobs <-disc.nobs %>%
+  filter(Fleet == 'GR')
+
+hb.nobs <-disc.nobs %>%
+  filter(Fleet == 'HB')
+
+
+
+
+#length.type <- 'FL (cm)'
+
+ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, colour=Fleet)) +
+    geom_line(linewidth=1) +
+         xlab("Bin, FL (cm)") +
+         ylab("Proportion of Annual Sample") +
+         labs(title = "") +
+         scale_color_manual(name = 'Comp', 
+                 values = c('magenta', 'darkblue', 'deeppink')) +
+  #scale_x_continuous(breaks=seq(20, 100, by=20), limits=c(0, 120), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=gr.nobs, colour ='magenta2', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=hb.nobs, colour ='darkblue', size=3) +
+  #facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=9)) 
+
+
+
+
+```
+
+# 
+
+# 
+
+# Nominal and Weighted Comparisons
+
+## FL Only
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: false
+
+
+##* *FL nominal and weighted length comps*
+FL.wgt.wide2 <- readxl::read_xlsx(paste0(dir,'/DiscardLenComps/RS_rec_dlfdw_FL_hb_0524_20250612.xlsx'), sheet = 'comp2')
+
+##* *Remove years with n_fish < 30*
+#nom.l.wide <- subset(nom.l.wide, n_fish >=30)
+  
+  
+  
+##* *Reorganize the data so the lengths are rows instead of columns*
+FL.comp <- FL.wgt.wide2 %>%
+  pivot_longer(cols = !c(Year, n_fish, n_trip, Type),
+               names_to = "bin",
+               values_to = "Len_Comp")
+
+
+
+FL.comp$bin <- as.numeric(FL.comp$bin)
+
+
+
+
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of weighting methods and nominal for FL headboat discard length comps. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'FL_weighted_comparisons_nom'
+#| eval: false
+
+
+
+
+ggplot(dat=FL.comp, aes(x=bin, y=Len_Comp, colour=Type)) +
+    geom_line(linewidth=1) +
+         xlab("Bin, paste0(length.type)") +
+         ylab("Proportion of Annual Sample") +
+         labs(title = "") +
+         scale_color_manual(name = 'Comp', 
+                 values = c('green', 'darkblue', 'deeppink')) +
+  scale_x_continuous(breaks=seq(20, 100, by=20), limits=c(0, 120), expand=c(0,0)) +
+  facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=9)) 
+
+
+```
+
+# 
+
+## All Data
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: false
+
+
+##* *Single Gulf Stock*
+
+
+##* *Weighted Discard Length Comps - Rec - MS-FL*
+wgt.l.wide.rec <- readxl::read_xlsx(paste0(dir,'/DiscardLenComps/GTF_rec_dlfdw_0524_20260121.xlsx'), sheet = 'GR')
+
+##* *Remove years with n_fish < 30*
+#nom.l.wide <- subset(nom.l.wide, n_fish >=30)
+  
+##* *Remove years with n_fish = 0*
+wgt.l.wide.rec <- wgt.l.wide.rec %>%
+  filter(n_fish >=1)
+  
+##* *Reorganize the data so the lengths are rows instead of columns*
+wgt.l.rec.g <-wgt.l.wide.rec %>%
+  pivot_longer(cols = !c(Year, Fleet, n_fish, n_trip),
+               names_to = "bin",
+               values_to = "Len_Comp")
+
+wgt.l.rec.g$Comp <- "Weighted"
+
+
+wgt.l.rec.g$bin <- as.numeric(wgt.l.rec.g$bin)
+
+
+
+
+##* *Combine nominal and weighted comps*
+disc.comps <- rbind(nom.l.rec.g, wgt.l.rec.g)
+
+
+
+
+nom.nobs <-disc.comps %>%
+  filter(Comp == 'Nominal')
+
+wgt.nobs <-disc.comps %>%
+  filter(Comp == 'Weighted')
+
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Figure. Comparison of nominal and weighted discard length comps. Note differences in y-axis scale"
+#| fig-width: 11
+#| fig-height: 8.5
+#| warning: false
+#| label: 'nom_vs_weighted'
+#| eval: false
+
+
+
+
+ggplot(dat=disc.comps, aes(x=bin, y=Len_Comp, colour=Comp)) +
+    geom_line(linewidth=1) +
+         xlab("Bin (Fork Length cm)") +
+         ylab("Proportion of Annual Sample") +
+         labs(title = "") +
+         scale_color_manual(name = 'Comp', 
+                 values = c('magenta2', 'darkblue', 'deeppink')) +
+  scale_x_continuous(breaks=seq(0, 60, by=10), limits=c(0, 62), expand=c(0,0)) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=1.1, hjust=1.2, data=nom.nobs, colour ='magenta2', size=3) +
+  geom_text(aes(label=paste0('n=', n_fish)), x=Inf, y=Inf, vjust=2.1, hjust=1.2, data=wgt.nobs, colour ='darkblue', size=3) +
+  facet_wrap(~as.factor(Year), ncol=5, scales='free_y') +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill="white", size=1)) +
+  theme(strip.text = element_text(size=9)) +
+  theme(plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = 'bottom') +
+  theme(axis.text=element_text(size=8),
+        text=element_text(size=9)) 
+
+
+
+```
+
+## Sample/Trip Sizes Using Ellie's New File (3/11)
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+##* *Define directory*
+dir <- getwd()
+
+##* *Prevents R from converting any long numbers (ID codes) to scientific notation*
+options(scipen=999)
+
+
+##* *Import data*
+fl.lengths <- readxl::read_xlsx(paste0(dir,'/Discard_LenComps/KingMackerel_observerlengs_raw_FWRIv3.xlsx'), sheet = 'Headboat Raw Lengths', guess_max = 500000)
+
+
+
+##* *Assign fishing year*
+fl.lengths$Month2 <- as.numeric(fl.lengths$Month)
+
+fl.lengths$Year2 <- as.numeric(fl.lengths$YEAR)
+
+
+
+fl.lengths <- fl.lengths %>%
+  mutate(Year = case_when(
+    Month2 %in% c(7,8,9,10,11,12) ~ Year2,
+    Month2 %in% c(1,2,3,4,5,6)    ~ Year2-1))
+
+
+
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+hb.trips <- fl.lengths %>%
+  filter(catchtype == 'D') %>%
+  group_by(Year) %>%
+  summarise(n_fish = n(),
+         n_trip = length(unique(Sampling_Unit_ID)))
+
+
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+##* *Define directory*
+dir <- getwd()
+
+##* *Prevents R from converting any long numbers (ID codes) to scientific notation*
+options(scipen=999)
+
+
+##* *Import data*
+fl.lengths <- readxl::read_xlsx(paste0(dir,'/Discard_LenComps/KingMackerel_observerlengs_raw_FWRIv3.xlsx'), sheet = 'Charter Raw Lengths', guess_max = 500000)
+
+
+
+##* *Assign fishing year*
+fl.lengths$Month2 <- as.numeric(fl.lengths$Month)
+
+fl.lengths$Year2 <- as.numeric(fl.lengths$YEAR)
+
+
+
+fl.lengths <- fl.lengths %>%
+  mutate(Year = case_when(
+    Month2 %in% c(7,8,9,10,11,12) ~ Year2,
+    Month2 %in% c(1,2,3,4,5,6)    ~ Year2-1))
+
+
+
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| eval: true
+
+
+cb.trips <- fl.lengths %>%
+  filter(catchtype == 'D') %>%
+  group_by(Year) %>%
+  summarise(n_fish = n(),
+         n_trip = length(unique(Sampling_Unit_ID)))
+
+
+```
