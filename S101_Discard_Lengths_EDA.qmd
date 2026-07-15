@@ -1056,11 +1056,11 @@ pooled.nobs <-disc.nobs %>%
 length.type <- 'FL (cm)'
 
 
-lbin.type <- 'bin, (FL)'
+lbin.type <- 'FL (cm)'
 
 ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, fill=Time_Block)) +
     geom_histogram(position = "identity", stat="identity", alpha=0.6) +
-         xlab(paste0(lbin.type)) +
+         xlab('Fork Length (cm)') +
          ylab("Proportion of Annual Sample") +
          labs(title = "Nominal Discard Length - 2 cm bins") +
          scale_fill_manual(name = 'Time Block', 
@@ -1149,7 +1149,7 @@ lbin.type <- 'bin, (FL)'
 
 ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, fill=Time_Block)) +
     geom_histogram(position = "identity", stat="identity", alpha=0.6) +
-         xlab(paste0(lbin.type)) +
+         xlab('Fork Length (cm)') +
          ylab("Proportion of Annual Sample") +
          labs(title = "Nominal Discard Length - 5 cm bins") +
          scale_fill_manual(name = 'Time Block', 
@@ -1238,7 +1238,7 @@ lbin.type <- 'bin, (FL)'
 
 ggplot(dat=nom.l.rec.g, aes(x=bin, y=Len_Comp, fill=Time_Block)) +
     geom_histogram(position = "identity", stat="identity", alpha=0.6) +
-         xlab(paste0(lbin.type)) +
+         xlab('Fork Length (cm)') +
          ylab("Proportion of Annual Sample") +
          labs(title = "Nominal Discard Length - 10 cm bins") +
          scale_fill_manual(name = 'Time Block', 
